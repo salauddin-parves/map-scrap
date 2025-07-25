@@ -1,4 +1,4 @@
-map-scrapper
+map-scrapper</br>
 This is a professional Google Maps business data extractor GUI with a modern interface, demonstrating the concept using mock data and proper API integration patterns.
 
 Core Features:
