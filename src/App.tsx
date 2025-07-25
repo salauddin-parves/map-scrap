@@ -13,58 +13,80 @@ interface BusinessData {
   reviews: number;
 }
 
-const MOCK_DATA: BusinessData[] = [
-  {
-    id: '1',
-    name: 'The Golden Spoon Restaurant',
-    phone: '+880-1234-567890',
-    email: 'contact@goldenspoon.com',
-    website: 'https://goldenspoon.com',
-    address: 'Gulshan 2, Dhaka 1212',
-    rating: 4.5,
-    reviews: 324
-  },
-  {
-    id: '2',
-    name: 'Dhaka Delights',
-    phone: '+880-1234-567891',
-    email: 'info@dhakadelights.com',
-    website: 'https://dhakadelights.com',
-    address: 'Dhanmondi 27, Dhaka 1209',
-    rating: 4.2,
-    reviews: 187
-  },
-  {
-    id: '3',
-    name: 'Spice Garden',
-    phone: '+880-1234-567892',
-    email: 'hello@spicegarden.bd',
-    website: 'https://spicegarden.bd',
-    address: 'Uttara Sector 7, Dhaka 1230',
-    rating: 4.7,
-    reviews: 456
-  },
-  {
-    id: '4',
-    name: 'Royal Feast',
-    phone: '+880-1234-567893',
-    email: 'reservations@royalfeast.com',
-    website: 'https://royalfeast.com',
-    address: 'Banani DOHS, Dhaka 1213',
-    rating: 4.3,
-    reviews: 298
-  },
-  {
-    id: '5',
-    name: 'Urban Kitchen',
-    phone: '+880-1234-567894',
-    email: 'orders@urbankitchen.bd',
-    website: 'https://urbankitchen.bd',
-    address: 'Mirpur DOHS, Dhaka 1216',
-    rating: 4.1,
-    reviews: 143
-  }
-];
+// Function to generate dynamic mock data based on keyword and city
+const generateMockData = (keyword: string, city: string): BusinessData[] => {
+  const businessTypes = {
+    restaurant: ['Bistro', 'Grill', 'Kitchen', 'Cafe', 'Diner', 'Eatery', 'Tavern', 'Brasserie'],
+    hotel: ['Hotel', 'Inn', 'Resort', 'Lodge', 'Suites', 'Plaza', 'Grand', 'Royal'],
+    pharmacy: ['Pharmacy', 'Drugstore', 'Medical', 'Health', 'Care', 'Wellness', 'Rx'],
+    shop: ['Store', 'Shop', 'Market', 'Boutique', 'Outlet', 'Emporium', 'Gallery', 'Corner'],
+    gym: ['Fitness', 'Gym', 'Health Club', 'Training', 'Workout', 'Sports', 'Athletic', 'Wellness'],
+    default: ['Business', 'Service', 'Company', 'Center', 'Group', 'Solutions', 'Pro', 'Plus']
+  };
+
+  const adjectives = ['Premium', 'Elite', 'Golden', 'Royal', 'Modern', 'Classic', 'Urban', 'Central', 'Prime', 'Best'];
+  const cityAreas = {
+    'london': ['Mayfair', 'Kensington', 'Chelsea', 'Camden', 'Shoreditch', 'Canary Wharf', 'Westminster', 'Soho'],
+    'new york': ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island', 'Midtown', 'Downtown', 'Upper East Side'],
+    'dhaka': ['Gulshan', 'Dhanmondi', 'Uttara', 'Banani', 'Mirpur', 'Wari', 'Old Dhaka', 'Tejgaon'],
+    'paris': ['Champs-Élysées', 'Montmartre', 'Le Marais', 'Saint-Germain', 'Bastille', 'Belleville', 'Pigalle', 'Louvre'],
+    'tokyo': ['Shibuya', 'Shinjuku', 'Ginza', 'Harajuku', 'Akihabara', 'Roppongi', 'Asakusa', 'Ikebukuro'],
+    'default': ['Downtown', 'Central', 'North Side', 'South Side', 'East End', 'West End', 'Old Town', 'New District']
+  };
+
+  const phoneFormats = {
+    'london': '+44-20-',
+    'new york': '+1-212-',
+    'dhaka': '+880-1',
+    'paris': '+33-1-',
+    'tokyo': '+81-3-',
+    'default': '+1-555-'
+  };
+
+  const domains = {
+    'london': '.co.uk',
+    'new york': '.com',
+    'dhaka': '.bd',
+    'paris': '.fr',
+    'tokyo': '.jp',
+    'default': '.com'
+  };
+
+  const keywordLower = keyword.toLowerCase();
+  const cityLower = city.toLowerCase();
+  
+  const businessTypeKey = Object.keys(businessTypes).find(type => 
+    keywordLower.includes(type)
+  ) || 'default';
+  
+  const cityKey = Object.keys(cityAreas).find(cityName => 
+    cityLower.includes(cityName)
+  ) || 'default';
+
+  const types = businessTypes[businessTypeKey as keyof typeof businessTypes];
+  const areas = cityAreas[cityKey as keyof typeof cityAreas];
+  const phonePrefix = phoneFormats[cityKey as keyof typeof phoneFormats];
+  const domain = domains[cityKey as keyof typeof domains];
+
+  return Array.from({ length: 8 }, (_, i) => {
+    const adjective = adjectives[i % adjectives.length];
+    const type = types[i % types.length];
+    const area = areas[i % areas.length];
+    const businessName = `${adjective} ${type}`;
+    const slug = businessName.toLowerCase().replace(/\s+/g, '');
+    
+    return {
+      id: `${i + 1}`,
+      name: businessName,
+      phone: `${phonePrefix}${String(Math.floor(Math.random() * 900000) + 100000)}`,
+      email: `contact@${slug}${domain}`,
+      website: `https://${slug}${domain}`,
+      address: `${area}, ${city}`,
+      rating: Math.round((3.5 + Math.random() * 1.5) * 10) / 10,
+      reviews: Math.floor(Math.random() * 500) + 50
+    };
+  });
+};
 
 function App() {
   const [keyword, setKeyword] = useState('');
@@ -73,6 +95,7 @@ function App() {
   const [results, setResults] = useState<BusinessData[]>([]);
   const [progress, setProgress] = useState(0);
   const [currentlyScrapingIndex, setCurrentlyScrapingIndex] = useState(0);
+  const [currentMockData, setCurrentMockData] = useState<BusinessData[]>([]);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const startScraping = () => {
@@ -86,16 +109,20 @@ function App() {
     setProgress(0);
     setCurrentlyScrapingIndex(0);
 
+    // Generate mock data based on keyword and city
+    const mockData = generateMockData(keyword, city);
+    setCurrentMockData(mockData);
+
     // Simulate scraping process
     let currentIndex = 0;
     intervalRef.current = setInterval(() => {
-      const businessData = MOCK_DATA[currentIndex % MOCK_DATA.length];
+      const businessData = mockData[currentIndex % mockData.length];
       if (businessData) {
         // Create a unique business entry by adding index to avoid duplicates
         const uniqueBusinessData = {
           ...businessData,
-          id: `${businessData.id}-${Math.floor(currentIndex / MOCK_DATA.length)}-${currentIndex % MOCK_DATA.length}`,
-          name: `${businessData.name} ${currentIndex > MOCK_DATA.length - 1 ? `(${Math.floor(currentIndex / MOCK_DATA.length) + 1})` : ''}`
+          id: `${businessData.id}-${Math.floor(currentIndex / mockData.length)}-${currentIndex % mockData.length}`,
+          name: `${businessData.name} ${currentIndex > mockData.length - 1 ? `(${Math.floor(currentIndex / mockData.length) + 1})` : ''}`
         };
         setResults(prev => [...prev, uniqueBusinessData]);
         setCurrentlyScrapingIndex(currentIndex + 1);
